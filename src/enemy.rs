@@ -39,7 +39,7 @@ pub struct EnemyProps {
 
 #[derive(Debug, Clone)]
 pub struct FighterState {
-    health: f64,
+    pub health: f64,
 }
 
 enum EnemyAction {
@@ -88,9 +88,6 @@ impl Enemy for Orb {
         None
     }
     fn generate_problem(&mut self) -> Box<Problem> {
-        Box::new(TextProblem {
-            problem: "2 + 2".into(),
-            answer: "4".into()
-        })
+        Box::new(gen_simple_add_sub(2, 8))
     }
 }

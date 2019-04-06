@@ -1,4 +1,5 @@
 use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use rand::prelude::*;
 use crate::Model;
 
 pub trait Problem {
@@ -26,6 +27,19 @@ impl Problem for TextProblem {
     }
 }
 
-pub fn gen_simple_add_sub(start: usize, end: usize) {
-    
+pub fn gen_simple_add_sub(start: usize, end: usize) -> TextProblem {
+    let mut rng = SmallRng::from_entropy();
+    let (a, b) = (rng.gen_range(start, end), rng.gen_range(start, end));
+    let c = a+b;
+    if rng.gen::<bool>() {
+        TextProblem {
+            problem: format!("{}+{}=?", a, b),
+            answer: format!("{}", c),
+        }
+    } else {
+        TextProblem {
+            problem: format!("{}-{}=?", c, a),
+            answer: format!("{}", b),
+        }
+    }
 }

@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 yew = {git = "https://github.com/mabruckner/yew.git", branch="svg-hack" }
 stdweb="*"
+rand = {version="0.6", features=["stdweb"]}

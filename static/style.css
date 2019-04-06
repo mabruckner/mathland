@@ -36,6 +36,12 @@ svg {
     stroke: none;
 }
 
+.particle {
+    fill: #ffee44;
+    stroke: #ffee44;
+    stroke-width: 5px;
+}
+
 .circle_card {
     fill: None;
     stroke: black;
