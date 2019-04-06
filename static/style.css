@@ -1,5 +1,9 @@
+@import url('https://fonts.googleapis.com/css?family=Anton');
+
 svg {
     height: 600px;
+    background-color: #eee;
+    font-family: 'Anton', sans-serif;
 }
 
 .text_box,.problem_card {
@@ -11,3 +15,49 @@ svg {
 .textproblemtext {
     text-anchor: middle;
 }
+
+.answertext {
+    font-size: 30px;
+
+}
+
+.health_bar {
+    fill: white;
+    stroke: black;
+    stroke-width:2px;
+}
+.health_bar>.bar {
+    fill: red;
+    stroke: none;
+}
+
+.shadow {
+    fill: #00000055;
+    stroke: none;
+}
+
+.circle_card {
+    fill: None;
+    stroke: black;
+    stroke-width:5px;
+}
+
+.stats>text {
+    font-family: 'Anton', sans-serif;
+    fill: #aa0044;
+}
+.stats>path {
+    fill: white;
+    stroke: black;
+    stroke-width: 2px;
+}
+.stats>.name {
+    font-size: 30px;
+}
+.stats>.class {
+    font-size: 15px;
+}
+.stats>.level {
+    font-size: 17px;
+}
+

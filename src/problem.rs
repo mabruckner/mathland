@@ -25,3 +25,7 @@ impl Problem for TextProblem {
         self.answer.clone()
     }
 }
+
+pub fn gen_simple_add_sub(start: usize, end: usize) {
+    
+}
