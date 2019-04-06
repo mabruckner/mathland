@@ -139,6 +139,7 @@ dependencies = [
 name = "mathland"
 version = "0.1.0"
 dependencies = [
+ "stdweb 0.4.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "yew 0.7.0 (git+https://github.com/mabruckner/yew.git?branch=svg-hack)",
 ]
 
