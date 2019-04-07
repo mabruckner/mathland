@@ -7,7 +7,9 @@ svg {
 }
 
 .text_box,.problem_card {
-    fill: white;
+    fill: #fffa;
+    rx: 5px;
+    ry: 5px;
     stroke: black;
     stroke-width: 2px;
 }

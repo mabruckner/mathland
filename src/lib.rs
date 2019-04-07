@@ -33,13 +33,15 @@ pub struct Particle {
     vel: [f32; 2],
     pos: [f32; 2],
     grav: [f32; 2],
-    life: f32
+    damp: f32,
+    life: f32,
 }
 
 impl Particle {
     fn tick(&mut self, delta: f32) {
         for i in 0..2 {
             self.vel[i] += self.grav[i] * delta;
+            self.vel[i] *= 1.0/(self.damp*delta).exp2();
             self.pos[i] += self.vel[i] * delta;
         }
         self.life -= delta;
@@ -58,6 +60,7 @@ pub struct Model {
     pub particles: Vec<Particle>,
     pub state: FighterState,
     pub land_pos: [f32; 2],
+    pub obstacles: Vec<([f32; 2], Box<Problem>)>,
     pub _anim_task: Box<Task>,
 }
 
@@ -77,8 +80,35 @@ impl Direction {
             right: false,
         }
     }
+    fn down(&mut self, evt: &KeyDownEvent) {
+        self.set(&evt.key(), true);
+    }
+    fn up(&mut self, evt: &KeyUpEvent) {
+        self.set(&evt.key(), false);
+    }
+    fn set(&mut self, code: &str, val: bool) {
+        match code {
+            "ArrowUp" => { self.up = val; },
+            "ArrowDown" => { self.down = val; },
+            "ArrowLeft" => { self.left = val; },
+            "ArrowRight" => { self.right = val; },
+            _ => ()
+        }
+    }
+    fn direction(&self) -> [f32; 2] {
+        let x = match (self.right, self.left) {
+            (true, false) => 1.0,
+            (false, true) => -1.0,
+            _ => 0.0,
+        };
+        let y = match (self.up, self.down) {
+            (true, false) => 1.0,
+            (false, true) => -1.0,
+            _ => 0.0,
+        };
+        [x, y]
+    }
 }
-
 
 pub enum Msg {
     AnimTick(f32),
@@ -96,6 +126,8 @@ impl Component for Model {
         console.log("Starting up");
         let callback = link.send_back(|e:KeyDownEvent| Msg::KeyDown(e));
         window().add_event_listener(move |e: KeyDownEvent| callback.emit(e));
+        let callback = link.send_back(|e:KeyUpEvent| Msg::KeyUp(e));
+        window().add_event_listener(move |e: KeyUpEvent| callback.emit(e));
         let e = Box::new(Orb::new(4));
         let props = e.get_properties();
         Model {
@@ -107,22 +139,33 @@ impl Component for Model {
                 problem: "1 + 1".into(),
                 answer: "2".into()
             })),
-            enemy: Some(e),
+            enemy: None,
             enemy_props: props,
             ctx: Context {
                 anim_t: 0.0
             },
             particles: Vec::new(),
-            state: FighterState {
+            state: FighterState { 
                 health: 1.0,
             },
             land_pos: [0.0; 2],
             _anim_task: Box::new(handle),
+            obstacles: vec![
+                ([650.0, 50.0], Box::new(TextProblem::new("536+329","865"))),
+                ([250.0, -80.0], Box::new(TextProblem::new("3+3","6"))),
+            ],
         }
     }
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        self.text.movement = self.enemy.is_some();
         match msg {
             Msg::AnimTick(x) => {
+                if self.enemy.is_none() {
+                    let speed = 100.0 * x;
+                    let d = self.dir.direction();
+                    self.land_pos[0] += d[0] * speed;
+                    self.land_pos[1] += d[1] * speed;
+                }
                 self.ctx.anim_t += x;
                 for mut particle in self.particles.iter_mut() {
                     particle.tick(x);
@@ -135,7 +178,7 @@ impl Component for Model {
                 true
             },
             Msg::KeyDown(x) => {
-                if x.key() == "Enter" && self.problem.is_some() {
+                if x.key() == "Enter" && self.problem.is_some() && self.enemy.is_some() {
                     let correct = if let Some(ref p) = self.problem {
                         p.test_correct(&self.text.text)
                     } else {
@@ -160,14 +203,24 @@ impl Component for Model {
                         }
                     }
                     self.text = TextBox::new();
+                } else if x.key() == "Enter" && self.enemy.is_none() {
+                    for i in (0..self.obstacles.len()).rev() {
+                        if self.obstacles[i].1.test_correct(&self.text.text) {
+                            let (pos, _) = self.obstacles.swap_remove(i);
+                            self.firework([pos[0], -pos[1]], [0.0, 0.0], 500.0, 20, 0.75);
+                        }
+                    }
+                    self.text = TextBox::new();
                 } else {
                     self.text.down(&x);
+                    self.dir.down(&x);
                     self.console.log(&format!("{:?}", x.key()));
                 }
                 true
             },
             Msg::KeyUp(x) => {
                 self.text.up(&x);
+                self.dir.up(&x);
                 self.console.log(&format!("{:?}", x));
                 true
             },
@@ -206,7 +259,23 @@ impl Model {
                 pos: pos,
                 vel: [xdst.sample(&mut rng) as f32, ydst.sample(&mut rng) as f32],
                 life: life,
+                damp: 0.0,
                 grav: [0.0, 400.0]
+            });
+        }
+    }
+    fn firework(&mut self, pos: [f32; 2], vel: [f32; 2], spread: f32, count: usize, life: f32) {
+        let mut rng = SmallRng::from_entropy();
+        let xdst = Normal::new(vel[0] as f64, spread as f64);
+        let ydst = Normal::new(vel[1] as f64, spread as f64);
+        for i in 0..count {
+            self.particles.push(Particle {
+                p_type: PType::Spark,
+                pos: pos,
+                vel: [xdst.sample(&mut rng) as f32, ydst.sample(&mut rng) as f32],
+                life: life,
+                damp: 10.0,
+                grav: [0.0, 0.0]
             });
         }
     }
@@ -238,7 +307,6 @@ impl Model {
                     { self.particles() }
                     <g transform="translate(750, 430)",>{ stats_card(&self.enemy_props) }</g>
                     <rect class="problem_card", x=250, y=20, width=500, height=500, rx=10, ry=10,></rect>
-                    <rect class="text_box", x=250, y=530, width=500, height=50, rx=10, ry=10,></rect>
                     <g transform="translate(500, 300) scale(5)",>
                         {
                             if let Some(ref p) = self.problem {
@@ -248,7 +316,9 @@ impl Model {
                             }
                         }
                     </g>
-                    <text x=260, y=567, class="answertext",>{&self.text.text}</text>
+                    <g transform="translate(0, 585)",>
+                        { self.text_box() }
+                    </g>
                     <g transform="translate(0, 20)",>
                         { health_bar(self.state.health, 475.0) }
                     </g>
@@ -267,10 +337,31 @@ impl Model {
     }
     fn overland(&self) -> Html<Self> {
         html! {
-            <g>
+            <g transform="translate(500,300)",>
                 <g transform={format!("translate({},{})", -self.land_pos[0], self.land_pos[1])},>
-                    <image x=-1000, y=-1200, height=3000, width=3000, href="map.jpg",></image>
+                    <image x=-1500, y=-1500, height=3000, width=3000, href="map.jpg",></image>
+                {for self.obstacles.iter().map(|x| {
+                                                       html! {
+                                                           <g transform={format!("translate({}, {})", x.0[0], -x.0[1])},>
+                                                               <rect class="problem_card", x=-50, y=-50, width=100, height=100,></rect>
+                                                           { x.1.render() }
+                                                            </g>
+                                                       }
+                                                   })}
+                    { self.particles() }
                 </g>
+                <circle class="person", r=10, x=0, y=0,></circle>
+                <g transform="translate(0, 260)",>
+                    { self.text_box() }
+                </g>
+            </g>
+        }
+    }
+    fn text_box(&self) -> Html<Self> {
+        html!{
+            <g>
+                <rect class="text_box", x=-250, y=-25, width=500, height=50, rx=10, ry=10,></rect>
+                <text x=-240, y=12, class="answertext",>{&self.text.text}</text>
             </g>
         }
     }

@@ -27,6 +27,15 @@ impl Problem for TextProblem {
     }
 }
 
+impl TextProblem {
+    pub fn new(problem: &str, answer: &str) -> Self{
+        TextProblem {
+            problem: problem.into(),
+            answer: answer.into(),
+        }
+    }
+}
+
 pub fn gen_simple_add_sub(start: usize, end: usize) -> TextProblem {
     let mut rng = SmallRng::from_entropy();
     let (a, b) = (rng.gen_range(start, end), rng.gen_range(start, end));
