@@ -30,6 +30,26 @@ impl EnemyCard for CircleCard {
     }
 }
 
+pub struct OrbCard();
+
+impl EnemyCard for OrbCard {
+    fn render(&self, ctx: &Context) -> Html<Model> {
+        let float = ctx.anim_t.sin() * 0.1 + 1.0;
+        let unfloat = ctx.anim_t.sin() * (-0.1) + 1.0;
+        let rot = ctx.anim_t*1.0;
+        html!{
+            <g class="circle_card",>
+            { shadow(100.0*unfloat, 0.0, 0.0) }
+            {for (0..4).map(|i| {
+                html!{
+                    <ellipse cx=0, cy={-100.0*float}, ry=80, rx={(rot+(i as f32)*3.141/4.0).sin().abs()*80.0},></ellipse>
+                }
+            })}
+            </g>
+        }
+    }
+}
+
 pub struct EnemyProps {
     pub level: String,
     pub class: String,
@@ -57,11 +77,13 @@ pub trait Enemy {
 
 pub struct Orb {
     state: FighterState,
+    level: usize,
 }
 
 impl Orb {
-    pub fn new() -> Self {
+    pub fn new(level: usize) -> Self {
         Orb {
+            level: level,
             state: FighterState {
                 health: 1.0
             }
@@ -74,11 +96,15 @@ impl Enemy for Orb {
         self.state.clone()
     }
     fn get_properties(&self) -> EnemyProps {
+        let (name, card): (_, Box<EnemyCard>) = match self.level {
+            0...3 => ("Circle", Box::new(CircleCard())),
+            _ => ("Orb", Box::new(OrbCard())),
+        };
         EnemyProps {
-            level: "1".into(),
+            level: format!("{}", self.level),
             class: "spheroid".into(),
-            name: "Circle".into(),
-            card: Box::new(CircleCard()),
+            name: name.into(),
+            card: card,
         }
     }
     fn damage(&mut self, amount: f64) {
@@ -88,6 +114,6 @@ impl Enemy for Orb {
         None
     }
     fn generate_problem(&mut self) -> Box<Problem> {
-        Box::new(gen_simple_add_sub(2, 8))
+        Box::new(gen_simple_add_sub(self.level*2, self.level*8))
     }
 }

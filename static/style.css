@@ -12,6 +12,12 @@ svg {
     stroke-width: 2px;
 }
 
+.victory {
+    text-anchor: middle;
+    font-size: 100px;
+    fill: #5a845c;
+}
+
 .textproblemtext {
     text-anchor: middle;
 }
@@ -37,8 +43,8 @@ svg {
 }
 
 .particle {
-    fill: #ffee44;
-    stroke: #ffee44;
+    fill: #ffee44ee;
+    stroke: #ffee44ee;
     stroke-width: 5px;
 }
 
