@@ -61,6 +61,7 @@ pub struct Model {
     pub state: FighterState,
     pub land_pos: [f32; 2],
     pub obstacles: Vec<([f32; 2], Box<Problem>)>,
+    pub encounters: Vec<Box<Enemy>>,
     pub _anim_task: Box<Task>,
 }
 
@@ -150,6 +151,11 @@ impl Component for Model {
             },
             land_pos: [0.0; 2],
             _anim_task: Box::new(handle),
+            encounters: vec![
+                Box::new(Orb::new(1)),
+                Box::new(Orb::new(3)),
+                Box::new(Orb::new(5)),
+            ],
             obstacles: vec![
                 ([650.0, 50.0], Box::new(TextProblem::new("536+329","865"))),
                 ([250.0, -80.0], Box::new(TextProblem::new("3+3","6"))),
@@ -158,13 +164,35 @@ impl Component for Model {
     }
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         self.text.movement = self.enemy.is_some();
+        let mut rng = SmallRng::from_entropy();
         match msg {
             Msg::AnimTick(x) => {
                 if self.enemy.is_none() {
                     let speed = 100.0 * x;
                     let d = self.dir.direction();
+                    if d != [0.0, 0.0] {
+                        if 0.01 > rng.gen_range(0.0, 1.0) {
+                            let items: Vec<usize> = (0..self.encounters.len()).collect();
+                            if let Some(mut e) = rng.choose(&items).map(|&i| self.encounters.swap_remove(i)) {
+                                self.enemy_props = e.get_properties();
+                                self.problem = Some(e.generate_problem());
+                                self.enemy = Some(e);
+                                self.state.health = 1.0;
+                                self.ctx.anim_t = 0.0;
+                            }
+                        }
+                    }
                     self.land_pos[0] += d[0] * speed;
                     self.land_pos[1] += d[1] * speed;
+                } else {
+                    let health = if let Some(ref x) = self.enemy {
+                        x.get_state().health
+                    } else {
+                        0.0
+                    };
+                    if health <= 0.0 {
+                        self.enemy = None;
+                    }
                 }
                 self.ctx.anim_t += x;
                 for mut particle in self.particles.iter_mut() {
@@ -197,10 +225,9 @@ impl Component for Model {
                         self.console.log("INCORRECT");
                         // incorrect
                     }
-                        if let Some(ref mut enemy) = self.enemy {
-                            enemy.damage(1.0);
-                    self.problem = Some(enemy.generate_problem());
-                        }
+                    if let Some(ref mut enemy) = self.enemy {
+                       self.problem = Some(enemy.generate_problem());
+                    }
                     }
                     self.text = TextBox::new();
                 } else if x.key() == "Enter" && self.enemy.is_none() {
@@ -316,7 +343,7 @@ impl Model {
                             }
                         }
                     </g>
-                    <g transform="translate(0, 585)",>
+                    <g transform="translate(500, 560)",>
                         { self.text_box() }
                     </g>
                     <g transform="translate(0, 20)",>

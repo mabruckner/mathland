@@ -6,7 +6,7 @@ svg {
     font-family: 'Anton', sans-serif;
 }
 
-.text_box,.problem_card {
+.text_box,.problem_card,.health_bar,.stats {
     fill: #fffa;
     rx: 5px;
     ry: 5px;
@@ -29,11 +29,6 @@ svg {
 
 }
 
-.health_bar {
-    fill: white;
-    stroke: black;
-    stroke-width:2px;
-}
 .health_bar>.bar {
     fill: red;
     stroke: none;
@@ -58,12 +53,8 @@ svg {
 
 .stats>text {
     font-family: 'Anton', sans-serif;
-    fill: #aa0044;
-}
-.stats>path {
-    fill: white;
-    stroke: black;
-    stroke-width: 2px;
+    fill: #5a845c;
+    stroke: none;
 }
 .stats>.name {
     font-size: 30px;
