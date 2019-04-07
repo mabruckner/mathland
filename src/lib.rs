@@ -143,7 +143,8 @@ impl Component for Model {
             enemy: None,
             enemy_props: props,
             ctx: Context {
-                anim_t: 0.0
+                anim_t: 0.0,
+                time_damage: 0.0,
             },
             particles: Vec::new(),
             state: FighterState { 
@@ -167,6 +168,7 @@ impl Component for Model {
         let mut rng = SmallRng::from_entropy();
         match msg {
             Msg::AnimTick(x) => {
+                    self.console.log(&format!("hello {}", self.ctx.time_damage));
                 if self.enemy.is_none() {
                     let speed = 100.0 * x;
                     let d = self.dir.direction();
@@ -195,6 +197,7 @@ impl Component for Model {
                     }
                 }
                 self.ctx.anim_t += x;
+                self.ctx.time_damage += x;
                 for mut particle in self.particles.iter_mut() {
                     particle.tick(x);
                 }
@@ -216,6 +219,7 @@ impl Component for Model {
                     if correct {
                         if let Some(ref mut enemy) = self.enemy {
                             enemy.damage(1.0);
+                            self.ctx.time_damage = 0.0;
                         }
 
                         self.blast([820.0, 250.0], [200.0, 200.0], 500.0, 10, 4.0);

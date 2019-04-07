@@ -3,6 +3,7 @@ use crate::problem::*;
 use crate::Model;
 use crate::context::*;
 use std::fmt::Debug;
+use rand::prelude::*;
 
 pub trait EnemyCard {
     fn render(&self, ctx: &Context) -> Html<Model>;
@@ -17,6 +18,23 @@ fn shadow(size: f32, x: f32, y: f32) -> Html<Model> {
     }
 }
 
+fn damage_box(ctx: &Context) -> Html<Model> {
+    if ctx.time_damage < 0.25 {
+        let mut rng = SmallRng::from_entropy();
+        let x = rng.gen_range(-40.0, 40.0);
+        let y = rng.gen_range(-150.0, -50.0);
+        let w = rng.gen_range(10.0, 200.0);
+        let h = rng.gen_range(5.0, 30.0);
+        html!{
+            <rect class="black", x={x-w/2.0}, y={y-h/2.0}, width=w, height=h,></rect>
+        }
+    } else {
+        html!{
+            <g></g>
+        }
+    }
+}
+
 impl EnemyCard for CircleCard {
     fn render(&self, ctx: &Context) -> Html<Model> {
         let float = ctx.anim_t.sin() * 0.1 + 1.0;
@@ -25,6 +43,7 @@ impl EnemyCard for CircleCard {
             <g class="circle_card",>
             { shadow(100.0*unfloat, 0.0, 0.0) }
                 <circle cx=0, cy ={-100.0*float}, r=80,></circle>
+                {damage_box(ctx)}
             </g>
         }
     }
@@ -45,6 +64,7 @@ impl EnemyCard for OrbCard {
                     <ellipse cx=0, cy={-100.0*float}, ry=80, rx={(rot+(i as f32)*3.141/4.0).sin().abs()*80.0},></ellipse>
                 }
             })}
+                {damage_box(ctx)}
             </g>
         }
     }

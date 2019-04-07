@@ -29,6 +29,11 @@ svg {
 
 }
 
+.black {
+    fill:black;
+    stroke:none;
+}
+
 .health_bar>.bar {
     fill: red;
     stroke: none;
