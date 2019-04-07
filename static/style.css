@@ -4,6 +4,9 @@ svg {
     height: 600px;
     background-color: #eee;
     font-family: 'Anton', sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 
 .text_box,.problem_card,.health_bar,.stats {
