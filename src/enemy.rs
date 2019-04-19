@@ -1,8 +1,7 @@
-use yew::{html, Component, ComponentLink, Html, Renderable, ShouldRender};
+use yew::{html, Html};
 use crate::problem::*;
 use crate::Model;
 use crate::context::*;
-use std::fmt::Debug;
 use rand::prelude::*;
 
 pub trait EnemyCard {
@@ -82,7 +81,7 @@ pub struct FighterState {
     pub health: f64,
 }
 
-enum EnemyAction {
+pub enum EnemyAction {
     Attack(f64),
 }
 
@@ -130,7 +129,7 @@ impl Enemy for Orb {
     fn damage(&mut self, amount: f64) {
         self.state.health -= 0.2*amount;
     }
-    fn act(&mut self, delta: f64) -> Option<EnemyAction> {
+    fn act(&mut self, _delta: f64) -> Option<EnemyAction> {
         None
     }
     fn generate_problem(&mut self) -> Box<Problem> {

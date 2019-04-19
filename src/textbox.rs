@@ -1,5 +1,4 @@
-
-use yew::events::{KeyPressEvent, KeyDownEvent, KeyUpEvent, IKeyboardEvent};
+use yew::events::{KeyDownEvent, KeyUpEvent, IKeyboardEvent};
 
 
 pub struct TextBox {
@@ -51,6 +50,6 @@ impl TextBox {
 
         }
     }
-    pub fn up(&mut self, e: &KeyUpEvent) {
+    pub fn up(&mut self, _e: &KeyUpEvent) {
     }
 }

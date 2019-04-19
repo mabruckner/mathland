@@ -8,3 +8,4 @@ edition = "2018"
 yew = {git = "https://github.com/mabruckner/yew.git", branch="svg-hack" }
 stdweb="*"
 rand = {version="0.6", features=["stdweb"]}
+cgmath = "0.17"
